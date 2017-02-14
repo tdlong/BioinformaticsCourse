@@ -1,0 +1,185 @@
+############################
+##  HPC QUEUE
+############################
+#Created HPC group "tony-class" ( let me know if you want a different name?) that includes all those users with access to the "class8-intel" queue.
+#tonyclass:x:506:tdlong,solarese,lillyl1,npervola,nzhao3,xinwenz,bclifton,sglassma,tgallagh,ehemming,jsanjak,ldmuelle
+#   tprout if needed
+# 	echo "$username:Roxicant@123#" | chpasswd
+
+##############################
+##  DATA
+##############################
+# on hpc
+/bio/share/Bioinformatics_Course.tar
+cp to your directory, untar, and tree
+
+########
+# where the data comes from 
+########
+
+# fly genome
+cd /home/tdlong/raid/Bioinformatics_Course/ref
+wget ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.13_FB2016_05/fasta/dmel-all-chromosome-r6.13.fasta.gz
+gunzp dmel-all-chromosome-r6.13.fasta.gz
+# fly gff
+wget ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.13_FB2016_05/gtf/dmel-all-r6.13.gtf.gz
+gunzip dmel-all-r6.13.gtf.gz 
+
+# RNA (recombinants)
+cd ~/raid/offbioclust/RNAseqII/final/rawdata
+cp RNAseq384* /home/tdlong/raid/Bioinformatics_Course/RNAseq/.
+cp -r RNAseq384plex_flowcell01 /home/tdlong/raid/Bioinformatics_Course/RNAseq/.
+
+# DNA
+cd /home/tdlong/raid/offbioclust/founders_R3.0/data/peraw
+cp ADL06* /home/tdlong/raid/Bioinformatics_Course/DNAseq/.
+cp ADL09* /home/tdlong/raid/Bioinformatics_Course/DNAseq/.
+cp ADL10* /home/tdlong/raid/Bioinformatics_Course/DNAseq/.
+cp ADL14* /home/tdlong/raid/Bioinformatics_Course/DNAseq/.
+cp README* /home/tdlong/raid/Bioinformatics_Course/DNAseq/.
+
+###############
+README.DNA.txt
+###############
+Three important points to consider
+1.  The DNA samples were given arbitrary labels so
+	A4 = ADL06
+	A5 = ADL09
+	A6 = ADL10
+	A7 = ADL14
+2.  ADLxx_yy_zz.fq.gz -> xx = DNA source, yy = replicate lane, zz = F or R read
+3.  The data is old...although you can analyze it with switches you will hit a snag down the road.
+    Best convert to a modern format...
+ 
+#perl fastqFormatDetect.pl ADL01.sample.fastq    (note the non-gzipped file...)
+#This file looks like Solexa/Illumina1.3+/Illumina1.5+ format.
+# likely best to convert to a modern format
+#e.g., seqtk seq -Q64 -V  Read1.fastq > Read1.sanger.fastq
+#module avail -l 2>&1 | grep bwa
+#module avail -l 2>&1 | grep seqtk
+# darn it
+#http://ged.msu.edu/angus/tutorials-2013/seqtk_tools.html
+#e.g., /home/tdlong/raid/seqtk/seqtk seq -Q64 -V  Read1.fq.gz | gzip -c > out.fq.gz
+
+#ATACseq
+
+scp * tdlong@tprout.bio.uci.edu:/home/tdlong/raid/Bioinformatics_Course/ATACseq/.
+
+
+###############
+README.ATACseq.txt
+###############
+
+BARCODE	Genotype	Tissue	Biological_Replicate
+P013	A4	WD	1
+P014	A4	WD	2
+P015	A4	WD	4
+P028	A5	WD	1
+P029	A5	WD	2
+P030	A5	WD	3
+P043	A6	WD	1
+P044	A6	WD	2
+P045	A6	WD	3
+P058	A7	WD	1
+P059	A7	WD	2
+P060	A7	WD	3
+P004	A4	ED	2
+P005	A4	ED	3
+P006	A4	ED	4
+P019	A5	ED	1
+P020	A5	ED	2
+P021	A5	ED	3
+P034	A6	ED	1
+P035	A6	ED	2
+P036	A6	ED	3
+P049	A7	ED	1
+P050	A7	ED	2
+P051	A7	ED	3
+
+ED = Eye imaginal Disc
+WD = Wing imaginal Disc
+
+scp Bioinformatics_Course.tar tdlong@hpc.out.uci.edu:/bio/share/.
+chmod a+r /bio/share/Bioinformatics_Course.tar
+
+#########################
+# installing Rstudio
+#########################
+
+
+###  installation instruction notes ... if you want your own DEseq2 server
+1.  I updated my server to the newest Ubuntu (Xenial).
+
+2. Install latest greatest R, and RStudio    
+https://www.r-bloggers.com/how-to-install-r-on-linux-ubuntu-16-04-xenial-xerus/
+RStudio uses the most recent R automatically (which I guess is easy since I am not using module load...the weakness of my machine).
+It sort of sucks that R is not simpler to install.  "R version 3.3.2"
+
+3.  Install the latest and greatest Bioconductor
+# from within R as superuser.  You have to make sure it doesn't install at the user level
+source("http://bioconductor.org/biocLite.R")
+biocLite(lib="/usr/lib/R/library")
+# this is how you install modules not part of the standard release
+biocLite(c("GenomicFeatures","GenomicAlignments","Rsamtools","DESeq2"),lib="/usr/lib/R/library")
+# The current release of Bioconductor is version 3.4; it works with R version 3.3.1.
+# Users of older R andBioconductor users must update their installation to take advantage of new features and to access packages that have been added to Bioconductor since the last release.
+
+4.  Test
+# Rstudio running on ADL's private server
+http://tprout.bio.uci.edu:8787
+
+# on hpc
+module load R/3.3.2
+
+# we are working on an hpc Rstudio port.
+
+# sign in etc.
+# are the modules there
+library( "GenomicFeatures" )
+library( "Rsamtools" )
+library( "GenomicAlignments" )
+library( "DESeq2" )
+
+######################################
+###  what if I am running R studio on my server
+###  but want to see data on hpc
+#######################################
+
+This is all fine and dandy ... but my raw data is on hpc and I am on tprout (or my own private server).  Duh.
+#  there is a program call sshfs that lets me mount remote filesystems over ssh
+sudo apt-get install sshfs
+# log into tprout and
+mkdir RNAseq_Project     # make a working directory
+cd RNAseq_Project
+mkdir hpc_mydata         # this is where I will mount my hpc file system of use
+# mount the remote filesystem
+sshfs username@hpc.oit.uci.edu:/bio/username/project/folderwithdata/ hpc_mydata
+#  now from within RStudio you can change the working directory to
+--->>>> RNAseq_Project
+# and refer to your big data with a relative path
+xx <- read.table("hpc_mydata/sample1.txt")
+# eventually you should unmount the directory structure from within your RNAseq_Project directory
+fusermount -u hpc_mydata
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
