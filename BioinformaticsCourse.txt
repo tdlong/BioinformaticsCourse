@@ -154,7 +154,8 @@ module load java/1.7
 # Option #1 -- traditional GATK pipeline (slow)
 java -d64 -jar MergeSamFiles.jar I=sample1.RG.bam I=sample2.RG.bam etc SO=coordinate AS=true VALIDATION_STRINGENCY=SILENT O=merged.bam
 samtools index merged.bam
-# a little trick if you have lots of I='s $(printf 'I=%s ' $dir/*.RG.bam)
+# a little trick if you have lots of I='s you want to compare to one another in the same dir
+# just replace the manual list of I= I= ... with $(printf 'I=%s ' $dir/*.RG.bam)
 java -d64 -Xmx128g -jar GenomeAnalysisTK.jar -T RealignerTargetCreator -nt 8 -R $ref -I merged.bam --minReadsAtLocus 4 -o merged.intervals
 java -d64 -Xmx20g -jar GenomeAnalysisTK.jar -T IndelRealigner -R $ref -I merged.bam -targetIntervals merged.intervals -LOD 3.0 -o merged-realigned.bam
 java -d64 -Xmx128g -jar GenomeAnalysisTK.jar -T UnifiedGenotyper -nt 8 -R $ref -I merged-realigned.bam -gt_mode DISCOVERY -stand_call_conf 30 -stand_emit_conf 10 -o rawSNPS-Q30.vcf
@@ -163,6 +164,8 @@ java -d64 -Xmx20g -jar GenomeAnalysisTK.jar -T VariantFiltration -R $ref -V rawS
 cat Q30-SNPs.vcf | grep 'PASS\|^#' > pass.SNPs.vcf
 cat inDels-Q30.vcf | grep 'PASS\|^#' > pass.inDels.vcf
 # it I want to display in SCGB I have to bgzip and tabix (part of samtools), see lecture 4
+# oddly bgzip is not the same as gzip and tabix is only for indexing bgzip, and SCGB can only deal with bgzip
+# the reasons behind this are discussed in the Buffalo book (but basically bgzip indexes on several defined columns)
 # may as well run this now
 bgzip -c pass.SNPs.vcf >pass.SNPs.vcf.gz
 tabix -p vcf pass.SNPs.vcf.gz
@@ -177,16 +180,19 @@ wc -l regions.txt
 #4381
 # iterate over regions
 #$ -t 1-4381
-	leadzero=$(printf "V%04d" $SGE_TASK_ID)
-	region=`head -n $SGE_TASK_ID regions.txt | tail -n 1` 
-	bamtools merge -list "list of bam files" -region $region > $SGE_TASK_ID.bam
-	samtools index $SGE_TASK_ID.bam
-	samtools mpileup -u -t DP,AD -f $ref $SGE_TASK_ID.bam -r $region | bcftools call -c -v --output-type v - > $leadzero.vcf
-#clean-up
+
+leadzero=$(printf "V%04d" $SGE_TASK_ID)
+region=`head -n $SGE_TASK_ID regions.txt | tail -n 1` 
+bamtools merge -list "list of bam files" -region $region > $SGE_TASK_ID.bam
+samtools index $SGE_TASK_ID.bam
+samtools mpileup -u -t DP,AD -f $ref $SGE_TASK_ID.bam -r $region | bcftools call -c -v --output-type v - > $leadzero.vcf
+
+#clean-up outside the parallel loop
 bcftools concat --output-type v $(ls -1 *.vcf | perl -pe 's/\n/ /g') > merged.vcf  
 # this vcf isn't nearly as good as the one above, (but you can bgzip and tabix it)
 
 #Option #3 might be to take the best of both worlds and run GATK on $SGE_TASK_ID.bam
+(see final project)
 
 ###############################
 # RNAseq
@@ -351,6 +357,10 @@ https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3166836/
 
 g) No, I really love SCGB
 - check out genome in a box, track hubs, ....
+
+h) I want to run RNAseq, but don't have a genome...
+- you can build a transcriptome using "trinity" (on the cluster)
+- then you can use tophat to align to the transcriptome (instead of a genome + GFF file)
 	
 
 
