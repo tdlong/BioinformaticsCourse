@@ -70,6 +70,11 @@ bowtie2-build  ...
 - do each sample in parallel using a shell script
 - you may want a shell script or python program to generate "$file"
 - below are some "hints" you will have to change *some* filenames to variables!
+- I would make sure I can run each caller on a single small pair of files before writing a shell script
+	- zcat blah.blah.F.fq.gz | head -n 1000000 | gzip -c > test.F.fq.gz
+	- zcat blah.blah.R.fq.gz | head -n 1000000 | gzip -c > test.R.fq.gz
+- these 250K read pair files will run very quickly ... even from a qrsh shell to debug
+	
 
 how many tasks?
 with make 8 you want -R set to yes.
