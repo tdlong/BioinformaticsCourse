@@ -24,6 +24,12 @@ gunzp dmel-all-chromosome-r6.13.fasta.gz
 # fly gff
 wget ftp://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.13_FB2016_05/gtf/dmel-all-r6.13.gtf.gz
 gunzip dmel-all-r6.13.gtf.gz 
+# a version compatible with SCGB
+awk '{print "chr" $0}' dmel-all-r6.13.gtf >dm6.gtf
+# SCGB version
+ftp://hgdownload.cse.ucsc.edu/goldenPath/dm6/bigZips/dm6.fa.gz
+
+
 
 # RNA (recombinants)
 cd ~/raid/offbioclust/RNAseqII/final/rawdata

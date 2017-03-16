@@ -335,8 +335,50 @@ kentUtils/bin/linux.x86_64/bedGraphToBigWig sample_1.coverage $ref.fai sample_1.
 echo "http://wfitch.bio.uci.edu/~tdlong/SantaCruzTracks/ATACseq/sample_1.bw" >>links.txt
 scp *.bw tdlong@wfitch.bio.uci.edu:/home/tdlong/public_html/SantaCruzTracks/ATACseq/.
 
-do the students have hosting space??
+# the students have hosting space --- here
 https://hpc.oit.uci.edu/sharing-data
+
+#  Here is how I implemented the symlink version for a bam, vcf, and bw file.
+#  Obviously the paths to my data are different than yours!, but you should be able to get this to work.
+
+# here are some files and idexes I want to share
+/share/adl/tdlong/DSPR/ATACseq/Sample_A4_BR_1.bw
+/share/adl/tdlong/DSPR/DNAseq/Oct10/A4.RG.bam
+/share/adl/tdlong/DSPR/DNAseq/Oct10/A4.RG.bam.bai
+/share/adl/tdlong/DSPR/DNAseq/work/SNPs.vcf.gz
+/share/adl/tdlong/DSPR/DNAseq/work/SNPs.vcf.gz.tbi
+
+#  the path to your file has to have "execute" privileges
+chmod a+x  /share/adl/tdlong
+chmod a+x  /share/adl/tdlong/DSPR
+chmod a+x  /share/adl/tdlong/DSPR/ATACseq
+chmod a+x  /share/adl/tdlong/DSPR/ATACseq/bigwigs
+chmod a+x  /share/adl/tdlong/DSPR/DNAseq
+chmod a+x  /share/adl/tdlong/DSPR/DNAseq/Oct10
+chmod a+x  /share/adl/tdlong/DSPR/DNAseq/work
+
+#  the actual file (and index) has to be readable
+chmod a+r  /share/adl/tdlong/DSPR/ATACseq/bigwigs/Sample_A4_BR_1.bw
+chmod a+r  /share/adl/tdlong/DSPR/DNAseq/Oct10/A4.RG.bam
+chmod a+r  /share/adl/tdlong/DSPR/DNAseq/Oct10/A4.RG.bam.bai
+chmod a+r  /share/adl/tdlong/DSPR/DNAseq/work/SNPs.vcf.gz
+chmod a+r  /share/adl/tdlong/DSPR/DNAseq/work/SNPs.vcf.gz.tbi
+
+# in your public space make some symlinks to the files and indexes
+cd  /pub/public-www/tdlong
+mkdir BioinformaticsClass
+cd BioinformaticsClass
+ln -s  /share/adl/tdlong/DSPR/ATACseq/bigwigs/Sample_A4_BR_1.bw   Sample_A4_BR_1.bw
+ln -s  /share/adl/tdlong/DSPR/DNAseq/Oct10/A4.RG.bam   A4.RG.bam
+ln -s  /share/adl/tdlong/DSPR/DNAseq/Oct10/A4.RG.bam.bai   A4.RG.bam.bai
+ln -s  /share/adl/tdlong/DSPR/DNAseq/work/SNPs.vcf.gz   SNPs.vcf.gz
+ln -s  /share/adl/tdlong/DSPR/DNAseq/work/SNPs.vcf.gz.tbi   SNPs.vcf.gz.tbi
+
+#  load these in SCGB ... note that the indexes are "automatic"
+http://hpc.oit.uci.edu/~tdlong/BioinformaticsClass/Sample_A4_BR_1.bw
+http://hpc.oit.uci.edu/~tdlong/BioinformaticsClass/A4.RG.bam
+http://hpc.oit.uci.edu/~tdlong/BioinformaticsClass/SNPs.vcf.gz
+
 
 ###########################################
 ## Week 5
